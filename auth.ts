@@ -8,15 +8,6 @@ import { getUserById } from "@/data/user";
 import { UserRole } from "@prisma/client";
 import { getTwoFactorConfirmationByUserId } from "@/data/two-factor-confirmation";
 
-declare module "next-auth" {
-  interface Session {
-    user: {
-      name: any;
-      role: UserRole;
-    };
-  }
-}
-
 export const {
   handlers: { GET, POST },
   auth,
@@ -75,6 +66,10 @@ export const {
         session.user.role = token.role as UserRole;
       }
 
+      if (session.user) {
+        session.user.isTwoFactorEnabled = token.isTwoFactorEnabled as boolean;
+      }
+
       return session;
     },
     async jwt({ token }) {
@@ -85,6 +80,7 @@ export const {
       if (!existingUser) return token;
 
       token.role = existingUser.role;
+      token.isTwoFactorEnabled = existingUser.isTwoFactorEnabled;
 
       return token;
     },
